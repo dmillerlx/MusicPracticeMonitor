@@ -49,7 +49,6 @@
             this.label7 = new System.Windows.Forms.Label();
             this.lblThresholdValue = new System.Windows.Forms.Label();
             this.lblSessionState = new System.Windows.Forms.Label();
-            this.chkEnableMusicDetection = new System.Windows.Forms.CheckBox();
             this.trackBarLowFreq = new System.Windows.Forms.TrackBar();
             this.trackBarHighFreq = new System.Windows.Forms.TrackBar();
             this.trackBarEnergy = new System.Windows.Forms.TrackBar();
@@ -58,10 +57,21 @@
             this.lblHighFreq = new System.Windows.Forms.Label();
             this.lblEnergy = new System.Windows.Forms.Label();
             this.lblMusicRatio = new System.Windows.Forms.Label();
+            this.comboBoxDetectionMode = new System.Windows.Forms.ComboBox();
+            this.lblSustainedDb = new System.Windows.Forms.Label();
+            this.trackBarSustainedDb = new System.Windows.Forms.TrackBar();
+            this.lblSustainedDuration = new System.Windows.Forms.Label();
+            this.numericUpDownSustainedDuration = new System.Windows.Forms.NumericUpDown();
+            this.lblDecibels = new System.Windows.Forms.Label();
+            this.progressBarDecibels = new System.Windows.Forms.ProgressBar();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarThreshold)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarLowFreq)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarHighFreq)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarEnergy)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarSustainedDb)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSustainedDuration)).BeginInit();
             this.SuspendLayout();
             // 
             // button1
@@ -255,7 +265,7 @@
             this.progressBarSoundLevel.Location = new System.Drawing.Point(25, 561);
             this.progressBarSoundLevel.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.progressBarSoundLevel.Name = "progressBarSoundLevel";
-            this.progressBarSoundLevel.Size = new System.Drawing.Size(1055, 22);
+            this.progressBarSoundLevel.Size = new System.Drawing.Size(1484, 22);
             this.progressBarSoundLevel.TabIndex = 16;
             // 
             // trackBarThreshold
@@ -265,7 +275,7 @@
             this.trackBarThreshold.Location = new System.Drawing.Point(11, 540);
             this.trackBarThreshold.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.trackBarThreshold.Name = "trackBarThreshold";
-            this.trackBarThreshold.Size = new System.Drawing.Size(1082, 45);
+            this.trackBarThreshold.Size = new System.Drawing.Size(1511, 45);
             this.trackBarThreshold.TabIndex = 17;
             this.trackBarThreshold.TickStyle = System.Windows.Forms.TickStyle.None;
             this.trackBarThreshold.ValueChanged += new System.EventHandler(this.trackBarThreshold_ValueChanged);
@@ -301,17 +311,6 @@
             this.lblSessionState.Size = new System.Drawing.Size(189, 68);
             this.lblSessionState.TabIndex = 20;
             this.lblSessionState.Text = "label8";
-            // 
-            // chkEnableMusicDetection
-            // 
-            this.chkEnableMusicDetection.AutoSize = true;
-            this.chkEnableMusicDetection.Location = new System.Drawing.Point(420, 406);
-            this.chkEnableMusicDetection.Name = "chkEnableMusicDetection";
-            this.chkEnableMusicDetection.Size = new System.Drawing.Size(112, 19);
-            this.chkEnableMusicDetection.TabIndex = 21;
-            this.chkEnableMusicDetection.Text = "Music Detection";
-            this.chkEnableMusicDetection.UseVisualStyleBackColor = true;
-            this.chkEnableMusicDetection.CheckedChanged += new System.EventHandler(this.chkEnableMusicDetection_CheckedChanged);
             // 
             // trackBarLowFreq
             // 
@@ -380,11 +379,95 @@
             this.lblMusicRatio.TabIndex = 31;
             this.lblMusicRatio.Text = "label8";
             // 
+            // comboBoxDetectionMode
+            // 
+            this.comboBoxDetectionMode.FormattingEnabled = true;
+            this.comboBoxDetectionMode.Location = new System.Drawing.Point(978, 479);
+            this.comboBoxDetectionMode.Name = "comboBoxDetectionMode";
+            this.comboBoxDetectionMode.Size = new System.Drawing.Size(167, 23);
+            this.comboBoxDetectionMode.TabIndex = 32;
+            this.comboBoxDetectionMode.SelectedIndexChanged += new System.EventHandler(this.comboBoxDetectionMode_SelectedIndexChanged);
+            // 
+            // lblSustainedDb
+            // 
+            this.lblSustainedDb.AutoSize = true;
+            this.lblSustainedDb.Location = new System.Drawing.Point(1214, 60);
+            this.lblSustainedDb.Name = "lblSustainedDb";
+            this.lblSustainedDb.Size = new System.Drawing.Size(38, 15);
+            this.lblSustainedDb.TabIndex = 33;
+            this.lblSustainedDb.Text = "label8";
+            // 
+            // trackBarSustainedDb
+            // 
+            this.trackBarSustainedDb.Location = new System.Drawing.Point(1107, 88);
+            this.trackBarSustainedDb.Name = "trackBarSustainedDb";
+            this.trackBarSustainedDb.Size = new System.Drawing.Size(341, 45);
+            this.trackBarSustainedDb.TabIndex = 34;
+            this.trackBarSustainedDb.ValueChanged += new System.EventHandler(this.trackBarSustainedDb_ValueChanged);
+            // 
+            // lblSustainedDuration
+            // 
+            this.lblSustainedDuration.AutoSize = true;
+            this.lblSustainedDuration.Location = new System.Drawing.Point(1107, 176);
+            this.lblSustainedDuration.Name = "lblSustainedDuration";
+            this.lblSustainedDuration.Size = new System.Drawing.Size(38, 15);
+            this.lblSustainedDuration.TabIndex = 35;
+            this.lblSustainedDuration.Text = "label8";
+            // 
+            // numericUpDownSustainedDuration
+            // 
+            this.numericUpDownSustainedDuration.Location = new System.Drawing.Point(1265, 174);
+            this.numericUpDownSustainedDuration.Name = "numericUpDownSustainedDuration";
+            this.numericUpDownSustainedDuration.Size = new System.Drawing.Size(77, 23);
+            this.numericUpDownSustainedDuration.TabIndex = 36;
+            this.numericUpDownSustainedDuration.ValueChanged += new System.EventHandler(this.numericUpDownSustainedDuration_ValueChanged);
+            // 
+            // lblDecibels
+            // 
+            this.lblDecibels.AutoSize = true;
+            this.lblDecibels.Location = new System.Drawing.Point(1240, 371);
+            this.lblDecibels.Name = "lblDecibels";
+            this.lblDecibels.Size = new System.Drawing.Size(38, 15);
+            this.lblDecibels.TabIndex = 37;
+            this.lblDecibels.Text = "label8";
+            // 
+            // progressBarDecibels
+            // 
+            this.progressBarDecibels.Location = new System.Drawing.Point(1107, 399);
+            this.progressBarDecibels.Name = "progressBarDecibels";
+            this.progressBarDecibels.Size = new System.Drawing.Size(338, 23);
+            this.progressBarDecibels.TabIndex = 38;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Location = new System.Drawing.Point(663, 26);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(415, 428);
+            this.groupBox1.TabIndex = 39;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Frequency Filter";
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Location = new System.Drawing.Point(1084, 26);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(390, 428);
+            this.groupBox2.TabIndex = 40;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Sustained Energy Filter";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1103, 595);
+            this.ClientSize = new System.Drawing.Size(1532, 595);
+            this.Controls.Add(this.progressBarDecibels);
+            this.Controls.Add(this.lblDecibels);
+            this.Controls.Add(this.numericUpDownSustainedDuration);
+            this.Controls.Add(this.lblSustainedDuration);
+            this.Controls.Add(this.trackBarSustainedDb);
+            this.Controls.Add(this.lblSustainedDb);
+            this.Controls.Add(this.comboBoxDetectionMode);
             this.Controls.Add(this.lblMusicRatio);
             this.Controls.Add(this.lblEnergy);
             this.Controls.Add(this.lblHighFreq);
@@ -393,7 +476,6 @@
             this.Controls.Add(this.trackBarEnergy);
             this.Controls.Add(this.trackBarHighFreq);
             this.Controls.Add(this.trackBarLowFreq);
-            this.Controls.Add(this.chkEnableMusicDetection);
             this.Controls.Add(this.lblSessionState);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.lblThresholdValue);
@@ -415,6 +497,8 @@
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.trackBarThreshold);
+            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.groupBox2);
             this.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -425,6 +509,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.trackBarLowFreq)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarHighFreq)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarEnergy)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarSustainedDb)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSustainedDuration)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -453,7 +539,6 @@
         private Label label7;
         private Label lblThresholdValue;
         private Label lblSessionState;
-        private CheckBox chkEnableMusicDetection;
         private TrackBar trackBarLowFreq;
         private TrackBar trackBarHighFreq;
         private TrackBar trackBarEnergy;
@@ -462,5 +547,14 @@
         private Label lblHighFreq;
         private Label lblEnergy;
         private Label lblMusicRatio;
+        private ComboBox comboBoxDetectionMode;
+        private Label lblSustainedDb;
+        private TrackBar trackBarSustainedDb;
+        private Label lblSustainedDuration;
+        private NumericUpDown numericUpDownSustainedDuration;
+        private Label lblDecibels;
+        private ProgressBar progressBarDecibels;
+        private GroupBox groupBox1;
+        private GroupBox groupBox2;
     }
 }

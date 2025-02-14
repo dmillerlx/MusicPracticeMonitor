@@ -12,22 +12,25 @@ namespace MusicPracticeMonitor
 
         RegistryConfig registryConfig = new RegistryConfig("MusicMonitor");
 
+        private PracticeSessionConfig config;
+        private MicMonitor micMonitor;
+
         public Form1()
         {
             InitializeComponent();
 
             // Create and configure a new PracticeSessionConfig.
-            PracticeSessionConfig config = new PracticeSessionConfig
-            {
-                // Set any values you want to override the defaults.
-                Gain = 1.0,
-                SoundThresholdDb = -15.0,
-                ActiveStateDelay = TimeSpan.FromSeconds(2),
-                IdleStateDelay = TimeSpan.FromSeconds(10)
-            };
+            //PracticeSessionConfig config = new PracticeSessionConfig
+            //{
+            //    // Set any values you want to override the defaults.
+            //    Gain = 1.0,
+            //    SoundThresholdDb = -15.0,
+            //    ActiveStateDelay = TimeSpan.FromSeconds(2),
+            //    IdleStateDelay = TimeSpan.FromSeconds(10)
+            //};
 
             // Initialize the practice session with the configuration.
-            session = new PracticeSession(config);
+            //session = new PracticeSession(config);
 
             // Setup the UI update timer to tick every 500 milliseconds.
             uiUpdateTimer = new System.Windows.Forms.Timer();
@@ -36,6 +39,12 @@ namespace MusicPracticeMonitor
 
             // Create a registry config instance using your app name.
             registryConfig = new RegistryConfig("MusicPracticeMonitor");
+
+
+            config = new PracticeSessionConfig();
+            session = new PracticeSession(config);
+            micMonitor = new MicMonitor(config);
+            micMonitor.SoundLevelAvailable += MicMonitor_SoundLevelAvailable;
         }
 
         /// <summary>
@@ -179,16 +188,16 @@ namespace MusicPracticeMonitor
             LoadSettings();
 
 
-            // Initialize the trackBarThreshold with an appropriate range.
+            //// Initialize the trackBarThreshold with an appropriate range.
             trackBarThreshold.Minimum = -100; // Silence
             trackBarThreshold.Maximum = 0;    // Maximum loudness
             trackBarThreshold.TickFrequency = 5;
 
-            // Set its initial value to match your current config threshold.
-            trackBarThreshold.Value = (int)session.Config.SoundThresholdDb;
+            //// Set its initial value to match your current config threshold.
+            //trackBarThreshold.Value = (int)session.Config.SoundThresholdDb;
 
-            // Update the label to show the current threshold.
-            lblThresholdValue.Text = $"{trackBarThreshold.Value} dB";
+            //// Update the label to show the current threshold.
+            //lblThresholdValue.Text = $"{trackBarThreshold.Value} dB";
 
 
             initLabell(lblActiveTime);
@@ -199,84 +208,228 @@ namespace MusicPracticeMonitor
             initLabell(lblSessionState, "");
             initLabell(lblThresholdValue);
             initLabell(lblTotalSessionTime);
+            initLabell(lblDecibels);
+            initLabell(lblSustainedDuration);
+            initLabell(lblSustainedDb);
+            
 
-            // Retrieve a stored setting, or use a default if not present.
-            int ambientThreshold = registryConfig.GetInt("AmbientThreshold", -30);
-            //numericUpDownThreshold.Value = ambientThreshold;
-            trackBarThreshold.Value = ambientThreshold;
+            //// Retrieve a stored setting, or use a default if not present.
+            //int ambientThreshold = registryConfig.GetInt("AmbientThreshold", -30);
+            ////numericUpDownThreshold.Value = ambientThreshold;
+            //trackBarThreshold.Value = ambientThreshold;
 
 
 
-            // Initialize the low frequency slider.
+            //// Initialize the low frequency slider.
             trackBarLowFreq.Minimum = 20;     // e.g., 20 Hz
             trackBarLowFreq.Maximum = 500;    // e.g., 500 Hz
             trackBarLowFreq.Value = (int)session.Config.MusicLowFrequency;
             lblLowFreq.Text = $"Low Frequency: {trackBarLowFreq.Value} Hz";
 
-            // Initialize the high frequency slider.
+            //// Initialize the high frequency slider.
             trackBarHighFreq.Minimum = 500;   // e.g., 500 Hz
             trackBarHighFreq.Maximum = 10000; // e.g., 10 kHz
             trackBarHighFreq.Value = (int)session.Config.MusicHighFrequency;
             lblHighFreq.Text = $"High Frequency: {trackBarHighFreq.Value} Hz";
 
-            // Initialize the energy threshold slider.
-            // We'll use 0-100 to represent 0.0 to 1.0 (multiplied by 100).
+            //// Initialize the energy threshold slider.
+            //// We'll use 0-100 to represent 0.0 to 1.0 (multiplied by 100).
             trackBarEnergy.Minimum = 0;
             trackBarEnergy.Maximum = 100;
             trackBarEnergy.Value = (int)(session.Config.MusicEnergyThreshold * 100);
             lblEnergy.Text = $"Energy Threshold: {trackBarEnergy.Value}%";
 
-            // Set up the music ratio progress bar.
+            //// Set up the music ratio progress bar.
             progressBarMusicRatio.Minimum = 0;
             progressBarMusicRatio.Maximum = 100; // We'll map the ratio [0,1] to 0-100
 
+            // Initialize the decibel progress bar.
+            progressBarDecibels.Minimum = 0;
+            progressBarDecibels.Maximum = 100;
 
 
-            // Update UI controls with loaded values.
-            trackBarLowFreq.Value = (int)session.Config.MusicLowFrequency;
+
+            //// Update UI controls with loaded values.
+            //trackBarLowFreq.Value = (int)session.Config.MusicLowFrequency;
+            //lblLowFreq.Text = $"Low Frequency: {trackBarLowFreq.Value} Hz";
+
+            //trackBarHighFreq.Value = (int)session.Config.MusicHighFrequency;
+            //lblHighFreq.Text = $"High Frequency: {trackBarHighFreq.Value} Hz";
+
+            //trackBarEnergy.Value = (int)(session.Config.MusicEnergyThreshold * 100);
+            //lblEnergy.Text = $"Energy Threshold: {trackBarEnergy.Value}%";
+
+            //chkEnableMusicDetection.Checked = session.Config.EnableMusicDetection;
+
+            // Populate the detection mode combo box.
+            comboBoxDetectionMode.DataSource = Enum.GetValues(typeof(DetectionMode));
+            comboBoxDetectionMode.SelectedItem = config.CurrentDetectionMode;
+
+            // Initialize Frequency Filter controls.
+            trackBarLowFreq.Minimum = 20;
+            trackBarLowFreq.Maximum = 500;
+            trackBarLowFreq.Value = (int)config.MusicLowFrequency;
             lblLowFreq.Text = $"Low Frequency: {trackBarLowFreq.Value} Hz";
 
-            trackBarHighFreq.Value = (int)session.Config.MusicHighFrequency;
+            trackBarHighFreq.Minimum = 500;
+            trackBarHighFreq.Maximum = 10000;
+            trackBarHighFreq.Value = (int)config.MusicHighFrequency;
             lblHighFreq.Text = $"High Frequency: {trackBarHighFreq.Value} Hz";
 
-            trackBarEnergy.Value = (int)(session.Config.MusicEnergyThreshold * 100);
+            trackBarEnergy.Minimum = 0;
+            trackBarEnergy.Maximum = 100;
+            trackBarEnergy.Value = (int)(config.MusicEnergyThreshold * 100);
             lblEnergy.Text = $"Energy Threshold: {trackBarEnergy.Value}%";
 
-            chkEnableMusicDetection.Checked = session.Config.EnableMusicDetection;
+            // Initialize Sustained Energy controls.
+            trackBarSustainedDb.Minimum = -100;
+            trackBarSustainedDb.Maximum = 0;
+            trackBarSustainedDb.Value = (int)config.SustainedEnergyDbThreshold;
+            lblSustainedDb.Text = $"Sustained dB Threshold: {trackBarSustainedDb.Value} dB";
+
+            numericUpDownSustainedDuration.Minimum = 1;
+            numericUpDownSustainedDuration.Maximum = 10;
+            numericUpDownSustainedDuration.Value = (decimal)config.SustainedEnergyRequiredDuration.TotalSeconds;
+            lblSustainedDuration.Text = $"Sustained Duration: {numericUpDownSustainedDuration.Value} sec";
+
+            // Start the mic monitor.
+            micMonitor.Start();
+
+
+
+
+
 
             init = true;
         }
 
+
+        private void MicMonitor_SoundLevelAvailable(object sender, SoundLevelEventArgs e)
+        {
+            if (closing) return;
+
+            try
+            {
+                // Update UI from the audio callback (marshal to UI thread).
+                Invoke(new Action(() =>
+                {
+                    lblDecibels.Text = $"Decibels: {e.Decibels:F2} dB";
+                    // Map e.Decibels from [-100, 0] to [0, 100].
+                    int decibelProgress = (int)Math.Round(e.Decibels + 100);
+                    if (decibelProgress < progressBarDecibels.Minimum)
+                        decibelProgress = progressBarDecibels.Minimum;
+                    if (decibelProgress > progressBarDecibels.Maximum)
+                        decibelProgress = progressBarDecibels.Maximum;
+                    progressBarDecibels.Value = decibelProgress;
+
+                    progressBarMusicRatio.Value = (int)(micMonitor.LastMusicRatio * 100);
+                    lblMusicRatio.Text = $"Music Ratio: {micMonitor.LastMusicRatio:F2}";
+                }));
+            } catch (Exception ex)
+            {
+                return;
+            }
+        }
+
+        private void comboBoxDetectionMode_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (!init) return;
+            config.CurrentDetectionMode = (DetectionMode)comboBoxDetectionMode.SelectedItem;
+        }
+
+        //private void trackBarLowFreq_ValueChanged(object sender, EventArgs e)
+        //{
+        //    config.MusicLowFrequency = trackBarLowFreq.Value;
+        //    lblLowFreq.Text = $"Low Frequency: {trackBarLowFreq.Value} Hz";
+        //}
+
+        //private void trackBarHighFreq_ValueChanged(object sender, EventArgs e)
+        //{
+        //    config.MusicHighFrequency = trackBarHighFreq.Value;
+        //    lblHighFreq.Text = $"High Frequency: {trackBarHighFreq.Value} Hz";
+        //}
+
+        //private void trackBarEnergy_ValueChanged(object sender, EventArgs e)
+        //{
+        //    config.MusicEnergyThreshold = trackBarEnergy.Value / 100.0;
+        //    lblEnergy.Text = $"Energy Threshold: {trackBarEnergy.Value}%";
+        //}
+
+        private void trackBarSustainedDb_ValueChanged(object sender, EventArgs e)
+        {
+            if (!init) return;
+
+            config.SustainedEnergyDbThreshold = trackBarSustainedDb.Value;
+            lblSustainedDb.Text = $"Sustained dB Threshold: {trackBarSustainedDb.Value} dB";
+        }
+
+        private void numericUpDownSustainedDuration_ValueChanged(object sender, EventArgs e)
+        {
+            if (!init) return;
+
+            config.SustainedEnergyRequiredDuration = TimeSpan.FromSeconds((double)numericUpDownSustainedDuration.Value);
+            lblSustainedDuration.Text = $"Sustained Duration: {numericUpDownSustainedDuration.Value} sec";
+        }
+
+
+
         private void LoadSettings()
         {
-            // For numeric values, we store them as strings and parse them.
-            PracticeSessionConfig config = session.Config;
+            try
+            {
+                // General settings.
+                config.Gain = double.Parse(registryConfig.GetString("Gain", "1.0"), CultureInfo.InvariantCulture);
+                config.SoundThresholdDb = double.Parse(registryConfig.GetString("SoundThresholdDb", "-30.0"), CultureInfo.InvariantCulture);
+                config.ActiveStateDelay = TimeSpan.FromSeconds(double.Parse(registryConfig.GetString("ActiveStateDelay", "2"), CultureInfo.InvariantCulture));
+                config.IdleStateDelay = TimeSpan.FromSeconds(double.Parse(registryConfig.GetString("IdleStateDelay", "10"), CultureInfo.InvariantCulture));
 
-            // CultureInfo.InvariantCulture ensures that the decimal separator is correct.
-            config.Gain = double.Parse(registryConfig.GetString("Gain", "1.0"), CultureInfo.InvariantCulture);
-            config.SoundThresholdDb = double.Parse(registryConfig.GetString("SoundThresholdDb", "-30"), CultureInfo.InvariantCulture);
-            config.ActiveStateDelay = TimeSpan.FromSeconds(double.Parse(registryConfig.GetString("ActiveStateDelay", "2"), CultureInfo.InvariantCulture));
-            config.IdleStateDelay = TimeSpan.FromSeconds(double.Parse(registryConfig.GetString("IdleStateDelay", "10"), CultureInfo.InvariantCulture));
-            config.EnableMusicDetection = registryConfig.GetBool("EnableMusicDetection", true);
-            config.MusicLowFrequency = double.Parse(registryConfig.GetString("MusicLowFrequency", "100"), CultureInfo.InvariantCulture);
-            config.MusicHighFrequency = double.Parse(registryConfig.GetString("MusicHighFrequency", "4000"), CultureInfo.InvariantCulture);
-            // MusicEnergyThreshold is stored as an integer percentage, so divide by 100.
-            config.MusicEnergyThreshold = registryConfig.GetInt("MusicEnergyThreshold", 50) / 100.0;
+                // Detection mode.
+                string modeString = registryConfig.GetString("CurrentDetectionMode", "Normal");
+                config.CurrentDetectionMode = (DetectionMode)Enum.Parse(typeof(DetectionMode), modeString);
+
+                // Frequency filter parameters.
+                config.MusicLowFrequency = double.Parse(registryConfig.GetString("MusicLowFrequency", "100.0"), CultureInfo.InvariantCulture);
+                config.MusicHighFrequency = double.Parse(registryConfig.GetString("MusicHighFrequency", "4000.0"), CultureInfo.InvariantCulture);
+                config.MusicEnergyThreshold = double.Parse(registryConfig.GetString("MusicEnergyThreshold", "0.5"), CultureInfo.InvariantCulture);
+
+                // Sustained energy parameters.
+                config.SustainedEnergyDbThreshold = double.Parse(registryConfig.GetString("SustainedEnergyDbThreshold", "-30.0"), CultureInfo.InvariantCulture);
+                config.SustainedEnergyRequiredDuration = TimeSpan.FromSeconds(double.Parse(registryConfig.GetString("SustainedEnergyRequiredDuration", "2"), CultureInfo.InvariantCulture));
+            }
+            catch (Exception ex)
+            {
+                // Handle any parsing errors, perhaps log or notify the user.
+                MessageBox.Show($"Error loading settings: {ex.Message}");
+            }
         }
 
         private void SaveSettings()
         {
-            PracticeSessionConfig config = session.Config;
+            try
+            {
+                // General settings.
+                registryConfig.SetString("Gain", config.Gain.ToString(CultureInfo.InvariantCulture));
+                registryConfig.SetString("SoundThresholdDb", config.SoundThresholdDb.ToString(CultureInfo.InvariantCulture));
+                registryConfig.SetString("ActiveStateDelay", config.ActiveStateDelay.TotalSeconds.ToString(CultureInfo.InvariantCulture));
+                registryConfig.SetString("IdleStateDelay", config.IdleStateDelay.TotalSeconds.ToString(CultureInfo.InvariantCulture));
 
-            registryConfig.SetString("Gain", config.Gain.ToString(CultureInfo.InvariantCulture));
-            registryConfig.SetString("SoundThresholdDb", config.SoundThresholdDb.ToString(CultureInfo.InvariantCulture));
-            registryConfig.SetString("ActiveStateDelay", config.ActiveStateDelay.TotalSeconds.ToString(CultureInfo.InvariantCulture));
-            registryConfig.SetString("IdleStateDelay", config.IdleStateDelay.TotalSeconds.ToString(CultureInfo.InvariantCulture));
-            registryConfig.SetBool("EnableMusicDetection", config.EnableMusicDetection);
-            registryConfig.SetString("MusicLowFrequency", config.MusicLowFrequency.ToString(CultureInfo.InvariantCulture));
-            registryConfig.SetString("MusicHighFrequency", config.MusicHighFrequency.ToString(CultureInfo.InvariantCulture));
-            // Save MusicEnergyThreshold as an integer percentage.
-            registryConfig.SetInt("MusicEnergyThreshold", (int)(config.MusicEnergyThreshold * 100));
+                // Detection mode.
+                registryConfig.SetString("CurrentDetectionMode", config.CurrentDetectionMode.ToString());
+
+                // Frequency filter parameters.
+                registryConfig.SetString("MusicLowFrequency", config.MusicLowFrequency.ToString(CultureInfo.InvariantCulture));
+                registryConfig.SetString("MusicHighFrequency", config.MusicHighFrequency.ToString(CultureInfo.InvariantCulture));
+                registryConfig.SetString("MusicEnergyThreshold", config.MusicEnergyThreshold.ToString(CultureInfo.InvariantCulture));
+
+                // Sustained energy parameters.
+                registryConfig.SetString("SustainedEnergyDbThreshold", config.SustainedEnergyDbThreshold.ToString(CultureInfo.InvariantCulture));
+                registryConfig.SetString("SustainedEnergyRequiredDuration", config.SustainedEnergyRequiredDuration.TotalSeconds.ToString(CultureInfo.InvariantCulture));
+            }
+            catch (Exception ex)
+            {
+                // Handle any errors during saving.
+                MessageBox.Show($"Error saving settings: {ex.Message}");
+            }
         }
 
 
@@ -331,8 +484,11 @@ namespace MusicPracticeMonitor
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // Save settings to the registry when the form is closing.
+            closing = true;
             SaveSettings();
         }
+
+        bool closing = false;
 
 
         private void initLabell(Label lbl, String msg = "--")
@@ -345,7 +501,7 @@ namespace MusicPracticeMonitor
         {
             if (!init) return;
             // Assume 'session' holds your PracticeSession, which contains the config.
-            session.Config.EnableMusicDetection = chkEnableMusicDetection.Checked;
+            //session.Config.EnableMusicDetection = chkEnableMusicDetection.Checked;
         }
 
 

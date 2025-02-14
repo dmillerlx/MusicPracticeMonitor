@@ -10,13 +10,13 @@ namespace MusicPracticeMonitor
         private readonly WaveInEvent waveIn;
         private readonly PracticeSessionConfig config;
 
-        /// <summary>
-        /// Event raised whenever a new sound level is computed.
-        /// </summary>
+        // For Sustained Energy (and Combined mode).
+        private DateTime? sustainedEnergyStart = null;
+
         public event EventHandler<SoundLevelEventArgs> SoundLevelAvailable;
 
         /// <summary>
-        /// The last computed energy ratio from the music detection analysis.
+        /// Exposes the last computed energy ratio from the FFT analysis (for frequency filter modes).
         /// </summary>
         public double LastMusicRatio { get; private set; } = 0;
 
@@ -45,25 +45,73 @@ namespace MusicPracticeMonitor
             for (int i = 0; i < sampleCount; i++)
             {
                 short sample = BitConverter.ToInt16(e.Buffer, i * bytesPerSample);
-                float sample32 = sample / 32768f;
-                samples[i] = sample32;
-                sumSquares += sample32 * sample32;
+                float sampleFloat = sample / 32768f;
+                samples[i] = sampleFloat;
+                sumSquares += sampleFloat * sampleFloat;
             }
             double rms = Math.Sqrt(sumSquares / sampleCount);
             double effectiveRms = rms * config.Gain;
             double decibels = effectiveRms > 0 ? 20 * Math.Log10(effectiveRms) : -100;
 
-            // Apply music detection filtering only if enabled.
-            if (config.EnableMusicDetection)
+            // Switch based on the selected detection mode.
+            switch (config.CurrentDetectionMode)
             {
-                // The IsMusic method will update LastMusicRatio.
-                if (!IsMusic(samples, waveIn.WaveFormat))
-                {
-                    decibels = -100; // Force as silence/ambient noise.
-                }
+                case DetectionMode.Normal:
+                    // Use the computed decibels as-is.
+                    break;
+
+                case DetectionMode.FrequencyFilter:
+                    if (!IsMusic(samples, waveIn.WaveFormat))
+                    {
+                        decibels = -100;
+                    }
+                    break;
+
+                case DetectionMode.SustainedEnergy:
+                    if (decibels >= config.SustainedEnergyDbThreshold)
+                    {
+                        if (sustainedEnergyStart == null)
+                        {
+                            sustainedEnergyStart = DateTime.Now;
+                        }
+                        else if ((DateTime.Now - sustainedEnergyStart) >= config.SustainedEnergyRequiredDuration)
+                        {
+                            // Sustained high energy: leave decibels as computed.
+                        }
+                    }
+                    else
+                    {
+                        sustainedEnergyStart = null;
+                        decibels = -100;
+                    }
+                    break;
+
+                case DetectionMode.Combined:
+                    // First, check for sustained energy.
+                    if (decibels >= config.SustainedEnergyDbThreshold)
+                    {
+                        if (sustainedEnergyStart == null)
+                        {
+                            sustainedEnergyStart = DateTime.Now;
+                        }
+                        else if ((DateTime.Now - sustainedEnergyStart) >= config.SustainedEnergyRequiredDuration)
+                        {
+                            // Then, check frequency filter.
+                            if (!IsMusic(samples, waveIn.WaveFormat))
+                            {
+                                decibels = -100;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        sustainedEnergyStart = null;
+                        decibels = -100;
+                    }
+                    break;
             }
 
-            SoundLevelEventArgs args = new SoundLevelEventArgs
+            var args = new SoundLevelEventArgs
             {
                 Decibels = decibels,
                 Timestamp = DateTime.Now
@@ -73,36 +121,28 @@ namespace MusicPracticeMonitor
         }
 
         /// <summary>
-        /// Performs FFT analysis to determine if the input is music-like.
-        /// It computes the ratio of energy in the configurable frequency band versus total energy.
-        /// The computed ratio is saved in LastMusicRatio.
+        /// Performs FFT analysis to compute the ratio of energy in the target frequency band.
+        /// Updates LastMusicRatio and returns true if the ratio exceeds the configured threshold.
         /// </summary>
-        /// <param name="samples">Normalized audio samples.</param>
-        /// <param name="format">Audio format (to get sample rate).</param>
-        /// <returns>True if the ratio exceeds the MusicEnergyThreshold; otherwise, false.</returns>
         private bool IsMusic(float[] samples, WaveFormat format)
         {
             int sampleCount = samples.Length;
-            // Prepare FFT input.
             Complex[] fftBuffer = new Complex[sampleCount];
             for (int i = 0; i < sampleCount; i++)
             {
                 fftBuffer[i] = new Complex(samples[i], 0);
             }
-
-            // Perform FFT.
             Fourier.Forward(fftBuffer, FourierOptions.Matlab);
 
             double sampleRate = format.SampleRate;
             double freqResolution = sampleRate / sampleCount;
-            // Use configurable frequency band values.
+
             double lowFreq = config.MusicLowFrequency;
             double highFreq = config.MusicHighFrequency;
-
             double energyInBand = 0;
             double totalEnergy = 0;
-            int halfCount = sampleCount / 2; // Consider only positive frequencies.
 
+            int halfCount = sampleCount / 2; // Only positive frequencies.
             for (int i = 0; i < halfCount; i++)
             {
                 double frequency = i * freqResolution;
@@ -113,7 +153,6 @@ namespace MusicPracticeMonitor
                     energyInBand += magnitude;
                 }
             }
-
             double ratio = totalEnergy > 0 ? energyInBand / totalEnergy : 0;
             LastMusicRatio = ratio;
             return ratio > config.MusicEnergyThreshold;
