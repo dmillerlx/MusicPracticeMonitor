@@ -1,25 +1,28 @@
-﻿using NAudio.Wave;
+﻿using System;
+using System.Numerics; // For Complex numbers.
+using MathNet.Numerics.IntegralTransforms;
+using NAudio.Wave;
 
 namespace MusicPracticeMonitor
 {
-    /// <summary>
-    /// The MicMonitor listens to the microphone and raises events with the current sound level.
-    /// It uses NAudio’s WaveInEvent to capture audio data.
-    /// </summary>
     public class MicMonitor
     {
         private readonly WaveInEvent waveIn;
         private readonly PracticeSessionConfig config;
 
         /// <summary>
-        /// Raised every time a new sound level is computed.
+        /// Event raised whenever a new sound level is computed.
         /// </summary>
         public event EventHandler<SoundLevelEventArgs> SoundLevelAvailable;
+
+        /// <summary>
+        /// The last computed energy ratio from the music detection analysis.
+        /// </summary>
+        public double LastMusicRatio { get; private set; } = 0;
 
         public MicMonitor(PracticeSessionConfig config)
         {
             this.config = config;
-            // Set up a WaveInEvent for a typical format (mono, 16-bit, 44.1 kHz).
             waveIn = new WaveInEvent
             {
                 WaveFormat = new WaveFormat(44100, 16, 1)
@@ -27,60 +30,93 @@ namespace MusicPracticeMonitor
             waveIn.DataAvailable += OnDataAvailable;
         }
 
-        /// <summary>
-        /// Starts capturing audio.
-        /// </summary>
-        public void Start()
-        {
-            waveIn.StartRecording();
-        }
+        public void Start() => waveIn.StartRecording();
+        public void Stop() => waveIn.StopRecording();
 
-        /// <summary>
-        /// Stops capturing audio.
-        /// </summary>
-        public void Stop()
-        {
-            waveIn.StopRecording();
-        }
-
-        /// <summary>
-        /// Called by NAudio when audio data is available.
-        /// This method computes the RMS value of the audio buffer, applies gain,
-        /// converts it to decibels, and then raises the SoundLevelAvailable event.
-        /// </summary>
         private void OnDataAvailable(object sender, WaveInEventArgs e)
         {
-            int bytesPerSample = 2; // 16-bit audio
+            int bytesPerSample = 2; // 16-bit audio.
             int sampleCount = e.BytesRecorded / bytesPerSample;
             if (sampleCount == 0)
                 return;
 
             double sumSquares = 0;
-            for (int i = 0; i < e.BytesRecorded; i += bytesPerSample)
+            float[] samples = new float[sampleCount];
+            for (int i = 0; i < sampleCount; i++)
             {
-                // Convert two bytes to a 16-bit signed sample.
-                short sample = BitConverter.ToInt16(e.Buffer, i);
-                // Normalize sample to range [-1.0, 1.0].
-                double sample32 = sample / 32768.0;
+                short sample = BitConverter.ToInt16(e.Buffer, i * bytesPerSample);
+                float sample32 = sample / 32768f;
+                samples[i] = sample32;
                 sumSquares += sample32 * sample32;
             }
             double rms = Math.Sqrt(sumSquares / sampleCount);
-
-            // Apply gain.
             double effectiveRms = rms * config.Gain;
+            double decibels = effectiveRms > 0 ? 20 * Math.Log10(effectiveRms) : -100;
 
-            // Convert the RMS value to decibels.
-            double decibels = effectiveRms > 0 ? 20 * Math.Log10(effectiveRms) : -100; // If silent, assign a low value.
+            // Apply music detection filtering only if enabled.
+            if (config.EnableMusicDetection)
+            {
+                // The IsMusic method will update LastMusicRatio.
+                if (!IsMusic(samples, waveIn.WaveFormat))
+                {
+                    decibels = -100; // Force as silence/ambient noise.
+                }
+            }
 
-            // Create the event args with the current timestamp.
             SoundLevelEventArgs args = new SoundLevelEventArgs
             {
                 Decibels = decibels,
                 Timestamp = DateTime.Now
             };
 
-            // Raise the event.
             SoundLevelAvailable?.Invoke(this, args);
+        }
+
+        /// <summary>
+        /// Performs FFT analysis to determine if the input is music-like.
+        /// It computes the ratio of energy in the configurable frequency band versus total energy.
+        /// The computed ratio is saved in LastMusicRatio.
+        /// </summary>
+        /// <param name="samples">Normalized audio samples.</param>
+        /// <param name="format">Audio format (to get sample rate).</param>
+        /// <returns>True if the ratio exceeds the MusicEnergyThreshold; otherwise, false.</returns>
+        private bool IsMusic(float[] samples, WaveFormat format)
+        {
+            int sampleCount = samples.Length;
+            // Prepare FFT input.
+            Complex[] fftBuffer = new Complex[sampleCount];
+            for (int i = 0; i < sampleCount; i++)
+            {
+                fftBuffer[i] = new Complex(samples[i], 0);
+            }
+
+            // Perform FFT.
+            Fourier.Forward(fftBuffer, FourierOptions.Matlab);
+
+            double sampleRate = format.SampleRate;
+            double freqResolution = sampleRate / sampleCount;
+            // Use configurable frequency band values.
+            double lowFreq = config.MusicLowFrequency;
+            double highFreq = config.MusicHighFrequency;
+
+            double energyInBand = 0;
+            double totalEnergy = 0;
+            int halfCount = sampleCount / 2; // Consider only positive frequencies.
+
+            for (int i = 0; i < halfCount; i++)
+            {
+                double frequency = i * freqResolution;
+                double magnitude = fftBuffer[i].Magnitude;
+                totalEnergy += magnitude;
+                if (frequency >= lowFreq && frequency <= highFreq)
+                {
+                    energyInBand += magnitude;
+                }
+            }
+
+            double ratio = totalEnergy > 0 ? energyInBand / totalEnergy : 0;
+            LastMusicRatio = ratio;
+            return ratio > config.MusicEnergyThreshold;
         }
     }
 }

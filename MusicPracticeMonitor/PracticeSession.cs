@@ -33,6 +33,8 @@ namespace MusicPracticeMonitor
         // The mic monitor instance.
         private readonly MicMonitor micMonitor;
 
+        public double LastMusicRatio => micMonitor.LastMusicRatio;
+
         // A simple lock object to synchronize access.
         private readonly object lockObj = new object();
         private double currentDecibels = -100.0; // Default to a very low value when silent

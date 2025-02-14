@@ -31,12 +31,20 @@ namespace MusicPracticeMonitor
         /// </summary>
         public TimeSpan IdleStateDelay { get; set; }
 
+        public bool EnableMusicDetection { get; set; }
+
+        public double MusicLowFrequency { get; set; } = 100.0;
+        public double MusicHighFrequency { get; set; } = 4000.0;
+        // Energy ratio threshold (0 to 1) to consider the sound as music.
+        public double MusicEnergyThreshold { get; set; } = 0.5;
+
         public PracticeSessionConfig()
         {
             Gain = 1.0;
             SoundThresholdDb = -30.0;               // Example default threshold in decibels.
             ActiveStateDelay = TimeSpan.FromSeconds(2);  // 2 seconds of continuous sound to switch to Active.
             IdleStateDelay = TimeSpan.FromSeconds(10);   // 10 seconds of continuous silence to switch to Idle.
+            EnableMusicDetection = true;
         }
     }
 }
