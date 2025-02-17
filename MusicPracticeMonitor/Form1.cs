@@ -214,9 +214,9 @@ namespace MusicPracticeMonitor
             
 
             //// Retrieve a stored setting, or use a default if not present.
-            //int ambientThreshold = registryConfig.GetInt("AmbientThreshold", -30);
-            ////numericUpDownThreshold.Value = ambientThreshold;
-            //trackBarThreshold.Value = ambientThreshold;
+            int ambientThreshold = registryConfig.GetInt("AmbientThreshold", -30);
+            //numericUpDownThreshold.Value = ambientThreshold;
+            trackBarThreshold.Value = ambientThreshold;
 
 
 
