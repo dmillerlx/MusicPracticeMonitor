@@ -28,10 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
-            this.button4 = new System.Windows.Forms.Button();
             this.lblTotalSessionTime = new System.Windows.Forms.Label();
             this.lblActiveTime = new System.Windows.Forms.Label();
             this.lblIdleTime = new System.Windows.Forms.Label();
@@ -66,6 +65,10 @@
             this.progressBarDecibels = new System.Windows.Forms.ProgressBar();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.labelCountDown = new System.Windows.Forms.Label();
+            this.textBoxDelay = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.trackBarThreshold)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarLowFreq)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarHighFreq)).BeginInit();
@@ -78,7 +81,7 @@
             // 
             this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.button1.Font = new System.Drawing.Font("Arial", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.button1.Location = new System.Drawing.Point(25, 457);
+            this.button1.Location = new System.Drawing.Point(25, 466);
             this.button1.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(124, 60);
@@ -91,60 +94,37 @@
             // 
             this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.button2.Font = new System.Drawing.Font("Arial", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.button2.Location = new System.Drawing.Point(450, 457);
+            this.button2.Location = new System.Drawing.Point(184, 466);
             this.button2.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(118, 60);
             this.button2.TabIndex = 1;
-            this.button2.Text = "Stop";
+            this.button2.Text = "Reset";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.btnStop_Click);
-            // 
-            // button3
-            // 
-            this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.button3.Font = new System.Drawing.Font("Arial", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.button3.Location = new System.Drawing.Point(177, 457);
-            this.button3.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(113, 60);
-            this.button3.TabIndex = 2;
-            this.button3.Text = "Pause";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.btnPause_Click);
-            // 
-            // button4
-            // 
-            this.button4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.button4.Font = new System.Drawing.Font("Arial", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.button4.Location = new System.Drawing.Point(308, 457);
-            this.button4.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(125, 60);
-            this.button4.TabIndex = 3;
-            this.button4.Text = "Resume";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.btnResume_Click);
             // 
             // lblTotalSessionTime
             // 
             this.lblTotalSessionTime.AutoSize = true;
-            this.lblTotalSessionTime.Font = new System.Drawing.Font("Arial Narrow", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblTotalSessionTime.Location = new System.Drawing.Point(354, 45);
+            this.lblTotalSessionTime.Font = new System.Drawing.Font("Arial Narrow", 63.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblTotalSessionTime.ForeColor = System.Drawing.Color.Red;
+            this.lblTotalSessionTime.Location = new System.Drawing.Point(303, 76);
             this.lblTotalSessionTime.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblTotalSessionTime.Name = "lblTotalSessionTime";
-            this.lblTotalSessionTime.Size = new System.Drawing.Size(83, 33);
+            this.lblTotalSessionTime.Size = new System.Drawing.Size(240, 99);
             this.lblTotalSessionTime.TabIndex = 4;
             this.lblTotalSessionTime.Text = "label1";
+            this.lblTotalSessionTime.Click += new System.EventHandler(this.lblTotalSessionTime_Click);
             // 
             // lblActiveTime
             // 
             this.lblActiveTime.AutoSize = true;
-            this.lblActiveTime.Font = new System.Drawing.Font("Arial Narrow", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblActiveTime.Font = new System.Drawing.Font("Arial Narrow", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblActiveTime.ForeColor = System.Drawing.Color.Red;
             this.lblActiveTime.Location = new System.Drawing.Point(43, 100);
             this.lblActiveTime.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblActiveTime.Name = "lblActiveTime";
-            this.lblActiveTime.Size = new System.Drawing.Size(83, 33);
+            this.lblActiveTime.Size = new System.Drawing.Size(137, 57);
             this.lblActiveTime.TabIndex = 5;
             this.lblActiveTime.Text = "label1";
             // 
@@ -163,7 +143,7 @@
             // 
             this.lblPercentActive.AutoSize = true;
             this.lblPercentActive.Font = new System.Drawing.Font("Arial Narrow", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblPercentActive.Location = new System.Drawing.Point(354, 182);
+            this.lblPercentActive.Location = new System.Drawing.Point(373, 257);
             this.lblPercentActive.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblPercentActive.Name = "lblPercentActive";
             this.lblPercentActive.Size = new System.Drawing.Size(137, 57);
@@ -184,11 +164,11 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Arial Narrow", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label1.Location = new System.Drawing.Point(283, 12);
+            this.label1.Font = new System.Drawing.Font("Arial Narrow", 39.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label1.Location = new System.Drawing.Point(234, 4);
             this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(235, 33);
+            this.label1.Size = new System.Drawing.Size(424, 63);
             this.label1.TabIndex = 9;
             this.label1.Text = "Total Session Time";
             // 
@@ -196,7 +176,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Arial Narrow", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label2.Location = new System.Drawing.Point(43, 67);
+            this.label2.Location = new System.Drawing.Point(43, 60);
             this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(149, 33);
@@ -218,7 +198,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Arial Narrow", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label4.Location = new System.Drawing.Point(270, 125);
+            this.label4.Location = new System.Drawing.Point(287, 191);
             this.label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(298, 57);
@@ -262,20 +242,20 @@
             // 
             this.progressBarSoundLevel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.progressBarSoundLevel.Location = new System.Drawing.Point(25, 561);
+            this.progressBarSoundLevel.Location = new System.Drawing.Point(25, 570);
             this.progressBarSoundLevel.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.progressBarSoundLevel.Name = "progressBarSoundLevel";
-            this.progressBarSoundLevel.Size = new System.Drawing.Size(1484, 22);
+            this.progressBarSoundLevel.Size = new System.Drawing.Size(1462, 22);
             this.progressBarSoundLevel.TabIndex = 16;
             // 
             // trackBarThreshold
             // 
             this.trackBarThreshold.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.trackBarThreshold.Location = new System.Drawing.Point(11, 540);
+            this.trackBarThreshold.Location = new System.Drawing.Point(11, 549);
             this.trackBarThreshold.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.trackBarThreshold.Name = "trackBarThreshold";
-            this.trackBarThreshold.Size = new System.Drawing.Size(1511, 45);
+            this.trackBarThreshold.Size = new System.Drawing.Size(1489, 45);
             this.trackBarThreshold.TabIndex = 17;
             this.trackBarThreshold.TickStyle = System.Windows.Forms.TickStyle.None;
             this.trackBarThreshold.ValueChanged += new System.EventHandler(this.trackBarThreshold_ValueChanged);
@@ -306,7 +286,7 @@
             // 
             this.lblSessionState.AutoSize = true;
             this.lblSessionState.Font = new System.Drawing.Font("Arial Black", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblSessionState.Location = new System.Drawing.Point(302, 290);
+            this.lblSessionState.Location = new System.Drawing.Point(354, 328);
             this.lblSessionState.Name = "lblSessionState";
             this.lblSessionState.Size = new System.Drawing.Size(189, 68);
             this.lblSessionState.TabIndex = 20;
@@ -456,11 +436,49 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Sustained Energy Filter";
             // 
+            // labelCountDown
+            // 
+            this.labelCountDown.AutoSize = true;
+            this.labelCountDown.Font = new System.Drawing.Font("Arial Black", 144F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.labelCountDown.ForeColor = System.Drawing.Color.Red;
+            this.labelCountDown.Location = new System.Drawing.Point(184, 157);
+            this.labelCountDown.Name = "labelCountDown";
+            this.labelCountDown.Size = new System.Drawing.Size(755, 270);
+            this.labelCountDown.TabIndex = 43;
+            this.labelCountDown.Text = "label8";
+            this.labelCountDown.Visible = false;
+            // 
+            // textBoxDelay
+            // 
+            this.textBoxDelay.Location = new System.Drawing.Point(442, 479);
+            this.textBoxDelay.Name = "textBoxDelay";
+            this.textBoxDelay.Size = new System.Drawing.Size(66, 23);
+            this.textBoxDelay.TabIndex = 41;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Font = new System.Drawing.Font("Arial Narrow", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label8.Location = new System.Drawing.Point(378, 477);
+            this.label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(59, 25);
+            this.label8.TabIndex = 42;
+            this.label8.Text = "Delay";
+            // 
+            // timer1
+            // 
+            this.timer1.Enabled = true;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1532, 595);
+            this.ClientSize = new System.Drawing.Size(1510, 604);
+            this.Controls.Add(this.labelCountDown);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.textBoxDelay);
             this.Controls.Add(this.progressBarDecibels);
             this.Controls.Add(this.lblDecibels);
             this.Controls.Add(this.numericUpDownSustainedDuration);
@@ -492,8 +510,6 @@
             this.Controls.Add(this.lblIdleTime);
             this.Controls.Add(this.lblActiveTime);
             this.Controls.Add(this.lblTotalSessionTime);
-            this.Controls.Add(this.button4);
-            this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.trackBarThreshold);
@@ -520,8 +536,6 @@
 
         private Button button1;
         private Button button2;
-        private Button button3;
-        private Button button4;
         private Label lblTotalSessionTime;
         private Label lblActiveTime;
         private Label lblIdleTime;
@@ -556,5 +570,9 @@
         private ProgressBar progressBarDecibels;
         private GroupBox groupBox1;
         private GroupBox groupBox2;
+        private TextBox textBoxDelay;
+        private Label label8;
+        private System.Windows.Forms.Timer timer1;
+        private Label labelCountDown;
     }
 }

@@ -133,20 +133,158 @@ namespace MusicPracticeMonitor
 
         }
 
-            // --- Button event handlers ---
-            private void btnStart_Click(object sender, EventArgs e)
+        private bool hasDelayStart()
         {
-            session.Start();
-            uiUpdateTimer.Start();
+            return getDelayStart() > 0;
         }
 
-        private void btnStop_Click(object sender, EventArgs e)
+        private int getDelayStart()
         {
-            session.Stop();
-            uiUpdateTimer.Stop();
+            if (int.TryParse(textBoxDelay.Text, out var delay))
+            {
+                if (delay <= 0)
+                {
+                    return 0;
+                }
+                return delay;
+            }
 
+            return 0;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (delayUntil != DateTime.MaxValue)
+            {
+                TimeSpan t = delayUntil - DateTime.Now;
+                labelCountDown.Text = t.TotalSeconds.ToString("F2");
+                labelCountDown.Visible = true;
+                if (DateTime.Now > delayUntil)
+                {
+                    delayUntil = DateTime.MaxValue;
+                    labelCountDown.Visible = false;
+
+                    switch (session.CurrentSessionStatus)
+                    {
+                        case SessionStatus.NotStarted:
+                        case SessionStatus.Stopped:
+                            {   
+                                session.Start();
+                                break;
+                            }
+                        case SessionStatus.Paused:
+                            {
+                                session.Resume();
+                                break;
+                            }
+                        case SessionStatus.Running:
+                        default: return;
+                    }
+
+                    //session.Start();
+                    uiUpdateTimer.Start();
+                    string stateText = "Running";
+                    Color stateColor = Color.Green;
+                    string buttonText = "Stop";
+                    session.currentAudioState = AudioState.Active;
+                    lblSessionState.Text = stateText;
+                    lblSessionState.ForeColor = stateColor;
+                    button1.Text = buttonText;
+                }
+            }
+        }
+
+        DateTime delayUntil = DateTime.MaxValue;
+
+        private void doDelayStart()
+        {
+            if (hasDelayStart())
+            {
+                delayUntil = DateTime.Now.AddSeconds(getDelayStart());
+            }
+        }
+
+
+        // --- Button event handlers ---
+        private void btnStart_Click(object sender, EventArgs e)
+        {
             String stateText = "Ended";
             Color stateColor = Color.Gray;
+            String buttonText = "";
+
+            if (session.CurrentSessionStatus == SessionStatus.NotStarted)
+            {
+                if (hasDelayStart())
+                {
+                    doDelayStart();
+                    return;
+                }
+                session.Start();
+                uiUpdateTimer.Start();
+                stateText = "Running";
+                stateColor = Color.Green;
+                buttonText = "Stop";
+                session.currentAudioState = AudioState.Active;
+            }
+            else if (session.CurrentSessionStatus == SessionStatus.Running)
+            {
+                session.Pause();
+                uiUpdateTimer.Stop();
+                stateText = "Stopped";
+                stateColor = Color.Red;
+                buttonText = "Start";
+            }
+            else if (session.CurrentSessionStatus == SessionStatus.Paused)
+            {
+                if (hasDelayStart())
+                {
+                    doDelayStart();
+                    return;
+                }
+                session.Resume();
+                uiUpdateTimer.Start();
+                stateText = "Running";
+                stateColor = Color.Green;
+                buttonText = "Stop";
+            }
+            else if (session.CurrentSessionStatus == SessionStatus.Stopped)
+            {
+                if (hasDelayStart())
+                {
+                    doDelayStart();
+                    return;
+                }
+                session.Start();
+                uiUpdateTimer.Start();
+                stateText = "Stopped";
+                stateColor = Color.Red;
+                buttonText = "Stop";
+            }
+
+
+            //Color stateColor = Color.Gray;
+            //// Update the state label.
+            lblSessionState.Text = stateText;
+            lblSessionState.ForeColor = stateColor;
+            button1.Text = buttonText;
+
+            //session.Start();
+        }
+
+
+        //Reset
+        private void btnStop_Click(object sender, EventArgs e)
+        {          
+            if (MessageBox.Show("Are you sure you want to reset?", "Verify", MessageBoxButtons.OKCancel) != DialogResult.OK)
+            {
+                return;
+            }
+
+            session.Stop();
+            uiUpdateTimer.Stop();
+            String stateText = "Stop + Reset";
+            Color stateColor = Color.Gray;
+            button1.Text = "Start";
             // Update the state label.
             lblSessionState.Text = stateText;
             lblSessionState.ForeColor = stateColor;
@@ -211,7 +349,8 @@ namespace MusicPracticeMonitor
             initLabell(lblDecibels);
             initLabell(lblSustainedDuration);
             initLabell(lblSustainedDb);
-            
+            initLabell(labelCountDown);
+
 
             //// Retrieve a stored setting, or use a default if not present.
             int ambientThreshold = registryConfig.GetInt("AmbientThreshold", -30);
@@ -395,6 +534,9 @@ namespace MusicPracticeMonitor
                 // Sustained energy parameters.
                 config.SustainedEnergyDbThreshold = double.Parse(registryConfig.GetString("SustainedEnergyDbThreshold", "-30.0"), CultureInfo.InvariantCulture);
                 config.SustainedEnergyRequiredDuration = TimeSpan.FromSeconds(double.Parse(registryConfig.GetString("SustainedEnergyRequiredDuration", "2"), CultureInfo.InvariantCulture));
+
+                //Delay Start
+                textBoxDelay.Text = registryConfig.GetString("delayStart", "");
             }
             catch (Exception ex)
             {
@@ -424,6 +566,9 @@ namespace MusicPracticeMonitor
                 // Sustained energy parameters.
                 registryConfig.SetString("SustainedEnergyDbThreshold", config.SustainedEnergyDbThreshold.ToString(CultureInfo.InvariantCulture));
                 registryConfig.SetString("SustainedEnergyRequiredDuration", config.SustainedEnergyRequiredDuration.TotalSeconds.ToString(CultureInfo.InvariantCulture));
+
+                // Delay Start
+                registryConfig.SetString("delayStart", textBoxDelay.Text);
             }
             catch (Exception ex)
             {
@@ -504,6 +649,9 @@ namespace MusicPracticeMonitor
             //session.Config.EnableMusicDetection = chkEnableMusicDetection.Checked;
         }
 
+        private void lblTotalSessionTime_Click(object sender, EventArgs e)
+        {
 
+        }
     }
 }

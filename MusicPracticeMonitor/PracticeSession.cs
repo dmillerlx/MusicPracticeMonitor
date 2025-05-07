@@ -11,7 +11,7 @@ namespace MusicPracticeMonitor
     {
         private readonly PracticeSessionConfig config;
         private SessionStatus sessionStatus;
-        private AudioState currentAudioState;
+        public AudioState currentAudioState { get; set; }
 
         // Time accumulators.
         private TimeSpan totalSessionTime;
@@ -68,6 +68,7 @@ namespace MusicPracticeMonitor
         /// Returns the current session status.
         /// </summary>
         public SessionStatus CurrentSessionStatus => sessionStatus;
+               
 
         /// <summary>
         /// Starts a new session (or restarts a session if one was reset).
